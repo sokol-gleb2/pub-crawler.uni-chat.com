@@ -1,0 +1,21 @@
+{
+  "name": "pub_crawler",
+  "version": "1.0.0",
+  "description": "",
+  "license": "ISC",
+  "author": "",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "node index.js",
+    "structure": "node structure.js"
+  },
+  "dependencies": {
+    "axios": "^1.13.5",
+    "csv-parse": "^6.1.0",
+    "csv-parser": "^3.2.0",
+    "dotenv": "^17.2.4",
+    "fs": "^0.0.1-security",
+    "json2csv": "^6.0.0-alpha.2"
+  }
+}

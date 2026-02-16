@@ -1,0 +1,5 @@
+node_modules/
+.env
+files/edinburgh_pubs_full.csv
+complete/
+structured/
