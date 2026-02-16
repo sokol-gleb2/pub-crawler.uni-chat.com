@@ -61,6 +61,10 @@ const isLatLon = (s) => {
     return lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180;
 };
 
+const removeUrls = (str) => {
+    const urlRegex = /\b((https?:\/\/|file:\/\/|www\.)[^\s]+)/gi;
+    return str.replace(urlRegex, '');
+}
 
 async function run() {
     const lines = [];
@@ -96,6 +100,20 @@ async function run() {
             const address = await getPlaceAddress(line.name, parseFloat(line.location.split(',')[0]), parseFloat(line.location.split(',')[1]));
             line.location = address;
         }
+
+        // Make student_discount_present consistent
+        if (line.student_discount_present && (line.student_discount_present == "False" || line.student_discount_present == "False")) {
+            line.student_discount_present = false;
+        } else if (line.student_discount_present && (line.student_discount_present == "True" || line.student_discount_present == "true")) {
+            line.student_discount_present = true;
+        } else {
+            line.student_discount_present = false;
+        }
+
+        // Remove random URLs from description
+        line.description = removeUrls(line.description);
+        // Remove random URLs from student_discount
+        line.student_discount = removeUrls(line.student_discount);
     }
 
     const parser = new Parser();
