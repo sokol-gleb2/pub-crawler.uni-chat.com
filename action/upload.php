@@ -265,6 +265,33 @@ function cleanupTmpFiles(array $tmpFiles): void {
     }
 }
 
+function pickVenuePoints(bool $studentDiscountPresent, ?string $area): int {
+    if (!$studentDiscountPresent) {
+        return 0;
+    }
+
+    if ($area !== null && strcasecmp(trim($area), "Edinburgh") === 0) {
+        return 0;
+    }
+
+    $totalWeight = 0;
+    $cumulative = [];
+    for ($points = 0; $points <= 50; $points++) {
+        $weight = ($points === 10 || $points === 20) ? 5 : 1;
+        $totalWeight += $weight;
+        $cumulative[$points] = $totalWeight;
+    }
+
+    $roll = random_int(1, $totalWeight);
+    foreach ($cumulative as $points => $threshold) {
+        if ($roll <= $threshold) {
+            return $points;
+        }
+    }
+
+    return 0;
+}
+
 try {
     if (!file_exists(CSV_PATH)) {
         http_response_code(500);
@@ -310,7 +337,7 @@ try {
     $insertSql = "
         INSERT INTO venues (
             id, name, website, location, area, coordinates, opening_times, rating, description,
-            student_discount_present, student_discount
+            student_discount_present, student_discount, points
         )
         VALUES (
             \$1, \$2, \$3, \$4, \$5,
@@ -318,7 +345,7 @@ try {
                 WHEN \$6::double precision IS NULL OR \$7::double precision IS NULL THEN NULL
                 ELSE ST_SetSRID(ST_MakePoint(\$7::double precision, \$6::double precision), 4326)::geography
             END,
-            \$8, \$9, \$10, \$11, \$12
+            \$8, \$9, \$10, \$11, \$12, \$13
         )
     ";
 
@@ -355,8 +382,10 @@ try {
         $openingTimes = normalizeNullableString($data["opening_times"] ?? null);
         $rating = parseRatingOrNull($data["rating"] ?? null);
         $description = normalizeNullableString($data["description"] ?? null);
-        $studentDiscountPresent = parseBoolean($data["student_discount_present"] ?? "false") ? "true" : "false";
+        $hasStudentDiscountPresent = parseBoolean($data["student_discount_present"] ?? "false");
+        $studentDiscountPresent = $hasStudentDiscountPresent ? "true" : "false";
         $studentDiscount = normalizeNullableString($data["student_discount"] ?? null);
+        $points = pickVenuePoints($hasStudentDiscountPresent, $area);
 
         $photo1 = normalizeNullableString($data["photo_1"] ?? null);
         $photo2 = normalizeNullableString($data["photo_2"] ?? null);
@@ -415,7 +444,8 @@ try {
             $rating,
             $description,
             $studentDiscountPresent,
-            $studentDiscount
+            $studentDiscount,
+            $points
         ]);
 
         if (($dbResult["result"] ?? "failure") === "failure") {

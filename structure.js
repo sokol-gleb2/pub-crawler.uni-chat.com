@@ -94,8 +94,7 @@ const getEdinburghArea = (lat, lng) => {
 };
 
 const removeUrls = (str) => {
-    const urlRegex = /\b((https?:\/\/|file:\/\/|www\.)[^\s]+)/gi;
-    return str.replace(urlRegex, '');
+    return str.replace(/https?:\/\/[^\s]*|www\.[^\s]+/gi, '');
 }
 
 async function run() {
